@@ -96,3 +96,19 @@ student.group = group
 group.info_all()
 
 
+def get_attributes(cls):
+    return [name for name, value in inspect.getmembers(cls, lambda a: not inspect.isfunction(a) or inspect.ismethod(a))
+            if not name.startswith('__')]
+
+def get_methods(cls):
+    return [name for name, value in inspect.getmembers(cls, inspect.isfunction or inspect.ismethod)
+            if not name.startswith('__')]
+
+classes = [Student, Worker]
+
+for cls in classes:
+    print(f"\n=== {cls.__name__} ===")
+    print("Атрибути:", get_attributes(cls))
+    print("Методи:", get_methods(cls))
+
+
