@@ -1,63 +1,60 @@
-class Calculator:
-    def __init__(self):
-        pass
+print('Lesson 7. Iterators, Decorators')
 
-    def str_to_float(self, value: str):
-        global result
-        try:
-            result = float(value)
-        except ValueError:
-            print("Помилка: неможливо конвертувати значення в число.")
-            result = None
-        finally:
-            return result
-
-    def add(self, a: float, b: float) -> float:
-        return a + b
-
-    def subtract(self, a: float, b: float) -> float:
-        return a - b
-
-    def multiply(self, a: float, b: float) -> float:
-        return a * b
-
-    def divide(self, a: float, b: float):
-        global result
-        try:
-            result = a / b
-        except ZeroDivisionError:
-            print("Помилка: ділення на нуль неможливе.")
-            result = None
-        finally:
-            return result
-
-    def calculate(self, num1: str, operator: str, num2: str):
-        a = self.str_to_float(num1)
-        b = self.str_to_float(num2)
-
-        if a is None or b is None:
-            print("Помилка в введених числах.")
-            return None
-
-        if operator == "+":
-            return self.add(a, b)
-        elif operator == "-":
-            return self.subtract(a, b)
-        elif operator == "*":
-            return self.multiply(a, b)
-        elif operator == "/":
-            return self.divide(a, b)
-        else:
-            print("Невідомий оператор.")
-            return None
+numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+print('before:\n', numbers, '\n')
 
 
-calc = Calculator()
+def convert(value):
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        print(f"Результат '{value}' не вдалося конвертувати до числа!")
+        return None
 
-num1 = input("Введіть перше число: ")
-operator = input("Введіть оператор (+, -, *, /): ")
-num2 = input("Введіть друге число: ")
 
-result = calc.calculate(num1, operator, num2)
-if result is not None:
-    print("Результат:", result)
+def up_square(n):
+    if n % 2 != 0:
+        result = n ** 2
+    else:
+        result = n
+    return convert(result)
+
+
+def widn(n):
+    if n % 2 != 0:
+        result = n - 5
+    else:
+        result = n
+    return convert(result)
+
+
+def mnog(n):
+    if n % 2 != 0:
+        result = n * 2
+    else:
+        result = n
+    return convert(result)
+
+
+def perevirka(n, dilnik):
+    try:
+        return n / dilnik
+    except ZeroDivisionError:
+        print("На нуль ділити не можна!")
+        return None
+
+
+def dil(n):
+    if n % 2 != 0:
+        return perevirka(n, 2)
+    else:
+        result = n
+    return convert(result)
+
+
+numbers_square = [up_square(n) for n in numbers if n >= 5]
+numbers_widn = [widn(n) for n in numbers if n >= 5]
+numbers_mnog = [mnog(n) for n in numbers if n >= 5]
+numbers_dil = [dil(n) for n in numbers if n >= 5]
+print(
+    f'after:\n Up square - {numbers_square}\n Subtraction - {numbers_widn}\n Multiplication - {numbers_mnog}\n Division - {numbers_dil}')
