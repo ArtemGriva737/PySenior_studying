@@ -1,60 +1,51 @@
-print('Lesson 7. Iterators, Decorators')
+import logging
 
-numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-print('before:\n', numbers, '\n')
+logging.basicConfig(level=logging.INFO,
+                    filename='logs.txt', filemode='a',
+                    format='%(asctime)s:%(levelname)s:%(message)s',
+                    encoding='utf-8')
 
-
-def convert(value):
-    try:
-        return float(value)
-    except (ValueError, TypeError):
-        print(f"Результат '{value}' не вдалося конвертувати до числа!")
-        return None
+print('Homework 8: Logging')
 
 
-def up_square(n):
-    if n % 2 != 0:
-        result = n ** 2
-    else:
-        result = n
-    return convert(result)
+class Calculation:
+    def __call__(self, a, b, operation):
+        try:
+            a = self.convert(a)
+            b = self.convert(b)
+
+            if operation == '+':
+                return a + b
+            elif operation == '-':
+                return a - b
+            elif operation == '*':
+                return a * b
+            elif operation == '/':
+                if a == 0 or b == 0:
+                    raise ZeroDivisionError("Спроба ділення на нуль")
+                return a / b
+            else:
+                raise ValueError("Невідомий оператор.")
+
+        except Exception as error:
+            logging.error(f"Помилка при обчисленні: {error.__str__()}")
+            return None
+
+    def convert(self, value):
+        try:
+            if isinstance(value, (int, float)):
+                return value
+            elif isinstance(value, str) and '.' in value:
+                return float(value)
+            else:
+                return int(value)
+        except ValueError as error:
+            logging.error(f"Помилка конвертації значення '{value}': {error.__str__()}")
+            raise ValueError(f"Неможливо конвертувати значення '{value}' до числа.")
 
 
-def widn(n):
-    if n % 2 != 0:
-        result = n - 5
-    else:
-        result = n
-    return convert(result)
+calculation = Calculation()
 
-
-def mnog(n):
-    if n % 2 != 0:
-        result = n * 2
-    else:
-        result = n
-    return convert(result)
-
-
-def perevirka(n, dilnik):
-    try:
-        return n / dilnik
-    except ZeroDivisionError:
-        print("На нуль ділити не можна!")
-        return None
-
-
-def dil(n):
-    if n % 2 != 0:
-        return perevirka(n, 2)
-    else:
-        result = n
-    return convert(result)
-
-
-numbers_square = [up_square(n) for n in numbers if n >= 5]
-numbers_widn = [widn(n) for n in numbers if n >= 5]
-numbers_mnog = [mnog(n) for n in numbers if n >= 5]
-numbers_dil = [dil(n) for n in numbers if n >= 5]
-print(
-    f'after:\n Up square - {numbers_square}\n Subtraction - {numbers_widn}\n Multiplication - {numbers_mnog}\n Division - {numbers_dil}')
+logging.info('start app')
+print(calculation(a = input('Введіть перше число: '), b = input('Введіть друге число: '), operation = input('Введіть оператора: ')))
+logging.info('end app')
