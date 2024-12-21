@@ -1,62 +1,98 @@
-class StudySubject:
-    name: str
-    hours: int
-    enable: bool
+import inspect
 
-    def __init__(self):
-        self.name = str(input('Введіть назву предмету: '))
-        self.hours = int(input('Введіть кількість годин потрібну для вивчення предмета: '))
-        self.enable = bool(input('Введіть чи вивчається зараз цей предмет (1 - так, 0 - ні): '))
-
-    def info_study(self):
-        print(f'Study: {self.name} | {self.hours} | {"Активен" if self.enable else "Не активен"}')
-
-
-class Student:
+class Person:
     name: str
     surname: str
-    subjects: list
+    age: int
 
-    def __init__(self):
-        self.name = str(input('Введіть імя студента: '))
-        self.surname = str(input('Введіть прізвище студента: '))
-        self.subjects = []
-        num_subjects = int(input('Введіть кількість предметів для студента: '))
-        for _ in range(num_subjects):
-            subject = StudySubject()
-            self.subjects.append(subject)
+    def __init__(self, name: str, surname: str, age: int):
+        self.name = name
+        self.surname = surname
+        self.age = age
+
+    def info_person(self):
+        print(f'Person:\t{self.name} | {self.surname} | {self.age}')
+
+
+class Student(Person):
+    progress: float
+    pensione: bool
+
+    def __init__(self, name: str, surname: str, age: int, progress: float, group=None):
+        Person.__init__(self, name, surname, age)
+        self.progress = progress
+        self.group = group
+        self.set_pensione(self.age)
+
+    def set_pensione(self, value: int):
+        if value >= 60:
+            self.pensione = True
+        else:
+            self.pensione = False
 
     def info_student(self):
-        print(f'Student: {self.name} | {self.surname}')
+        print(f'Student: Progress: {self.progress} | Pension: {self.pensione}')
 
     def info_all(self):
+        self.info_person()
         self.info_student()
-        for subject in self.subjects:
-            subject.info_study()
+        self.group.info_group()
+
+
+class Worker(Person):
+    position: str
+    duties: list
+    pensione: bool
+
+    def __init__(self, name: str, surname: str, age: int, position: str, duties: list):
+        Person.__init__(self, name, surname, age)
+        self.position = position
+        self.duties = duties
+        self.set_pensione(self.age)
+
+    def set_pensione(self, value: int):
+        if value >= 60:
+            self.pensione = True
+        else:
+            self.pensione = False
+
+    def info_worker(self):
+        print(f'Worker:\tPosition: {self.position} | Duties: {", ".join(self.duties)} | Pension: {self.pensione}')
+
+    def info_all(self):
+        self.info_person()
+        self.info_worker()
 
 
 class Group:
     name: str
     age_category: int
     students: list
+    workers: list
 
-    def __init__(self):
-        self.name = str(input('Введіть назву групи: '))
-        self.age_category = int(input('Введіть вікову категорію (від скількох років): '))
-        self.students = []
-        num_students = int(input('Введіть кількість студентів у групі: '))
-        for _ in range(num_students):
-            student = Student()
-            self.students.append(student)
+    def __init__(self, name: str, age_category: int, students: list, workers: list):
+        self.name = name
+        self.age_category = age_category
+        self.students = students
+        self.workers = workers
 
     def info_group(self):
         print(f'Group: {self.name} | Students: {len(self.students)} | Age category: {self.age_category}')
 
     def info_all(self):
-        self.info_group()
+        print('\n')
         for student in self.students:
             student.info_all()
+        print('\n')
+        for worker in self.workers:
+            worker.info_all()
 
 
-group = Group()
+student = Student(name='Ivan', surname='Shevchenko', age=19, progress=4.5)
+worker = Worker(name='Sergey', surname='Leonenko', age=35, position='Policeman', duties=['Follow the order', 'Catch criminals'])
+group = Group(name='Group A', age_category=18, students=[student], workers=[worker])
+student.group = group
+
 group.info_all()
+
+
