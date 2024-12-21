@@ -1,67 +1,54 @@
 import requests
 from bs4 import BeautifulSoup
-import tkinter as tk
+import sqlite3
+import time
 
 
-class CurrencyConverter:
-    def __init__(self):
-        self.dollar_rate = self.get_dollar()
+def give_data():
+        data_site = requests.get('https://www.pogodairadar.com/stranitsa-pogodyi/dnepr/4441971')
+        if data_site.status_code == 200:
+            soup = BeautifulSoup(data_site.text, features="html.parser")
+            soup_temperature = soup.find('div', {'class': 'current-conditions-line'})
+            soup_time_date = soup.find('div', {'class': 'name-col'})
 
-    def get_dollar(self):
-        try:
-            data_site = requests.get('https://bank.gov.ua/')
-            print('site bank.gov.ua status code', data_site.status_code)
+            if soup_temperature and soup_time_date:
+                temperature_text = soup_temperature.get_text(strip=True)
+                time_date_text = soup_time_date.get_text(strip=True)
 
-            if data_site.status_code == 200:
-                print('bank.gov.ua is connected')
-                soup = BeautifulSoup(data_site.text, features="html.parser")
+                print(f"Температура у Дніпрі: {temperature_text}")
+                print(f"Дата і час: {time_date_text}")
 
-                soup_dollar = soup.find_all('div', {'class': 'value index-page'})
-                if soup_dollar[3]:
-                    dollar_text = soup_dollar[3].get_text(strip=True).replace(',', '.')
-                    print(f"Курс долара: {dollar_text}")
-                    return float(dollar_text)
-        except Exception as e:
-            print(f"Помилка: {e}")
-            return None
+                connection = sqlite3.connect('weather_data.db')
+                cursor = connection.cursor()
 
-    def convert_to_dollar(self, amount):
-        if self.dollar_rate is None:
-            return "Не вдалося отримати курс долара."
-        return amount / self.dollar_rate
+                cursor.execute('''
+                CREATE TABLE IF NOT EXISTS weather (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    temperature TEXT NOT NULL,
+                    time_date TEXT NOT NULL
+                )
+                ''')
 
+                cursor.execute('''
+                INSERT INTO weather (temperature, time_date) 
+                VALUES (?, ?)
+                ''', (temperature_text, time_date_text))
 
-def create_gui():
-    converter = CurrencyConverter()
+                connection.commit()
+                print("Дані успішно збережено в базу даних.")
 
-    def convert_currency():
-        try:
-            amount = float(entry_amount.get())
-            dollar_amount = converter.convert_to_dollar(amount)
-            if isinstance(dollar_amount, str):
-                result_label.config(text=dollar_amount)
+                cursor.close()
+                connection.close()
             else:
-                result_label.config(text=f"Сума в USD: {dollar_amount:.2f}")
-        except ValueError:
-            result_label.config(text="Будь ласка, введіть коректне число.")
+                print("Не вдалося знайти дані на сайті.")
 
-    window = tk.Tk()
-    window.title("Конвертер Валюти")
-
-    tk.Label(window, text="Сума у гривнях:").grid(row=0, column=0, padx=10, pady=10)
-    entry_amount = tk.Entry(window)
-    entry_amount.grid(row=0, column=1, padx=10, pady=10)
-
-    convert_button = tk.Button(window, text="Конвертувати", command=convert_currency)
-    convert_button.grid(row=1, column=0, columnspan=2, pady=10)
-
-    result_label = tk.Label(window, text="")
-    result_label.grid(row=2, column=0, columnspan=2, pady=10)
-
-    window.mainloop()
+def main():
+    while True:
+        give_data()
+        print("\nОчікування 30 хвилин...")
+        time.sleep(1800)
 
 
 if __name__ == "__main__":
-    create_gui()
-
+    main()
 
