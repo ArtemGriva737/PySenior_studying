@@ -1,54 +1,22 @@
-import requests
-from bs4 import BeautifulSoup
-import sqlite3
-import time
+import cv2
 
+image_people_path = ('smiling-portrait-three-male-friends-standing-against-blue-background_23-2148160233.jpg')
 
-def give_data():
-        data_site = requests.get('https://www.pogodairadar.com/stranitsa-pogodyi/dnepr/4441971')
-        if data_site.status_code == 200:
-            soup = BeautifulSoup(data_site.text, features="html.parser")
-            soup_temperature = soup.find('div', {'class': 'current-conditions-line'})
-            soup_time_date = soup.find('div', {'class': 'name-col'})
+image_people = cv2.imread(image_people_path)
 
-            if soup_temperature and soup_time_date:
-                temperature_text = soup_temperature.get_text(strip=True)
-                time_date_text = soup_time_date.get_text(strip=True)
+handle_people_face = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
+handle_people_eyes = cv2.CascadeClassifier('haarcascade_eye.xml')
 
-                print(f"Температура у Дніпрі: {temperature_text}")
-                print(f"Дата і час: {time_date_text}")
+people_face_data = handle_people_face.detectMultiScale(image_people)
+people_eyes_data = handle_people_eyes.detectMultiScale(image_people)
 
-                connection = sqlite3.connect('weather_data.db')
-                cursor = connection.cursor()
+print(people_face_data, people_eyes_data)
 
-                cursor.execute('''
-                CREATE TABLE IF NOT EXISTS weather (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    temperature TEXT NOT NULL,
-                    time_date TEXT NOT NULL
-                )
-                ''')
+for(x, y, w, h) in people_face_data:
+    cv2.rectangle(image_people, (x, y), (x+w, y+h), (0, 255, 0), 3)
 
-                cursor.execute('''
-                INSERT INTO weather (temperature, time_date) 
-                VALUES (?, ?)
-                ''', (temperature_text, time_date_text))
+for(x, y, w, h) in people_eyes_data:
+    cv2.rectangle(image_people, (x, y), (x+w, y+h), (0, 255, 0), 3)
 
-                connection.commit()
-                print("Дані успішно збережено в базу даних.")
-
-                cursor.close()
-                connection.close()
-            else:
-                print("Не вдалося знайти дані на сайті.")
-
-def main():
-    while True:
-        give_data()
-        print("\nОчікування 30 хвилин...")
-        time.sleep(1800)
-
-
-if __name__ == "__main__":
-    main()
-
+cv2.imshow('People', image_people)
+cv2.waitKey()
