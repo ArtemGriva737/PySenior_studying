@@ -1,114 +1,63 @@
-import inspect
+class Calculator:
+    def __init__(self):
+        pass
 
-class Person:
-    name: str
-    surname: str
-    age: int
+    def str_to_float(self, value: str):
+        global result
+        try:
+            result = float(value)
+        except ValueError:
+            print("Помилка: неможливо конвертувати значення в число.")
+            result = None
+        finally:
+            return result
 
-    def __init__(self, name: str, surname: str, age: int):
-        self.name = name
-        self.surname = surname
-        self.age = age
+    def add(self, a: float, b: float) -> float:
+        return a + b
 
-    def info_person(self):
-        print(f'Person:\t{self.name} | {self.surname} | {self.age}')
+    def subtract(self, a: float, b: float) -> float:
+        return a - b
 
+    def multiply(self, a: float, b: float) -> float:
+        return a * b
 
-class Student(Person):
-    progress: float
-    pensione: bool
+    def divide(self, a: float, b: float):
+        global result
+        try:
+            result = a / b
+        except ZeroDivisionError:
+            print("Помилка: ділення на нуль неможливе.")
+            result = None
+        finally:
+            return result
 
-    def __init__(self, name: str, surname: str, age: int, progress: float, group=None):
-        Person.__init__(self, name, surname, age)
-        self.progress = progress
-        self.group = group
-        self.set_pensione(self.age)
+    def calculate(self, num1: str, operator: str, num2: str):
+        a = self.str_to_float(num1)
+        b = self.str_to_float(num2)
 
-    def set_pensione(self, value: int):
-        if value >= 60:
-            self.pensione = True
+        if a is None or b is None:
+            print("Помилка в введених числах.")
+            return None
+
+        if operator == "+":
+            return self.add(a, b)
+        elif operator == "-":
+            return self.subtract(a, b)
+        elif operator == "*":
+            return self.multiply(a, b)
+        elif operator == "/":
+            return self.divide(a, b)
         else:
-            self.pensione = False
-
-    def info_student(self):
-        print(f'Student: Progress: {self.progress} | Pension: {self.pensione}')
-
-    def info_all(self):
-        self.info_person()
-        self.info_student()
-        self.group.info_group()
+            print("Невідомий оператор.")
+            return None
 
 
-class Worker(Person):
-    position: str
-    duties: list
-    pensione: bool
+calc = Calculator()
 
-    def __init__(self, name: str, surname: str, age: int, position: str, duties: list):
-        Person.__init__(self, name, surname, age)
-        self.position = position
-        self.duties = duties
-        self.set_pensione(self.age)
+num1 = input("Введіть перше число: ")
+operator = input("Введіть оператор (+, -, *, /): ")
+num2 = input("Введіть друге число: ")
 
-    def set_pensione(self, value: int):
-        if value >= 60:
-            self.pensione = True
-        else:
-            self.pensione = False
-
-    def info_worker(self):
-        print(f'Worker:\tPosition: {self.position} | Duties: {", ".join(self.duties)} | Pension: {self.pensione}')
-
-    def info_all(self):
-        self.info_person()
-        self.info_worker()
-
-
-class Group:
-    name: str
-    age_category: int
-    students: list
-    workers: list
-
-    def __init__(self, name: str, age_category: int, students: list, workers: list):
-        self.name = name
-        self.age_category = age_category
-        self.students = students
-        self.workers = workers
-
-    def info_group(self):
-        print(f'Group: {self.name} | Students: {len(self.students)} | Age category: {self.age_category}')
-
-    def info_all(self):
-        print('\n')
-        for student in self.students:
-            student.info_all()
-        print('\n')
-        for worker in self.workers:
-            worker.info_all()
-
-
-student = Student(name='Ivan', surname='Shevchenko', age=19, progress=4.5)
-worker = Worker(name='Sergey', surname='Leonenko', age=35, position='Policeman', duties=['Follow the order', 'Catch criminals'])
-group = Group(name='Group A', age_category=18, students=[student], workers=[worker])
-student.group = group
-
-group.info_all()
-
-
-def get_attributes(cls):
-    return [name for name, value in inspect.getmembers(cls, lambda a: not inspect.isfunction(a) or inspect.ismethod(a))
-            if not name.startswith('__')]
-
-def get_methods(cls):
-    return [name for name, value in inspect.getmembers(cls, inspect.isfunction or inspect.ismethod)
-            if not name.startswith('__')]
-
-classes = [Student, Worker]
-
-for cls in classes:
-    print(f"\n=== {cls.__name__} ===")
-    print("Атрибути:", get_attributes(cls))
-    print("Методи:", get_methods(cls))
-
-
+result = calc.calculate(num1, operator, num2)
+if result is not None:
+    print("Результат:", result)
