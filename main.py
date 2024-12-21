@@ -1,51 +1,67 @@
-import logging
-
-logging.basicConfig(level=logging.INFO,
-                    filename='logs.txt', filemode='a',
-                    format='%(asctime)s:%(levelname)s:%(message)s',
-                    encoding='utf-8')
-
-print('Homework 8: Logging')
+import requests
+from bs4 import BeautifulSoup
+import tkinter as tk
 
 
-class Calculation:
-    def __call__(self, a, b, operation):
+class CurrencyConverter:
+    def __init__(self):
+        self.dollar_rate = self.get_dollar()
+
+    def get_dollar(self):
         try:
-            a = self.convert(a)
-            b = self.convert(b)
+            data_site = requests.get('https://bank.gov.ua/')
+            print('site bank.gov.ua status code', data_site.status_code)
 
-            if operation == '+':
-                return a + b
-            elif operation == '-':
-                return a - b
-            elif operation == '*':
-                return a * b
-            elif operation == '/':
-                if a == 0 or b == 0:
-                    raise ZeroDivisionError("Спроба ділення на нуль")
-                return a / b
-            else:
-                raise ValueError("Невідомий оператор.")
+            if data_site.status_code == 200:
+                print('bank.gov.ua is connected')
+                soup = BeautifulSoup(data_site.text, features="html.parser")
 
-        except Exception as error:
-            logging.error(f"Помилка при обчисленні: {error.__str__()}")
+                soup_dollar = soup.find_all('div', {'class': 'value index-page'})
+                if soup_dollar[3]:
+                    dollar_text = soup_dollar[3].get_text(strip=True).replace(',', '.')
+                    print(f"Курс долара: {dollar_text}")
+                    return float(dollar_text)
+        except Exception as e:
+            print(f"Помилка: {e}")
             return None
 
-    def convert(self, value):
+    def convert_to_dollar(self, amount):
+        if self.dollar_rate is None:
+            return "Не вдалося отримати курс долара."
+        return amount / self.dollar_rate
+
+
+def create_gui():
+    converter = CurrencyConverter()
+
+    def convert_currency():
         try:
-            if isinstance(value, (int, float)):
-                return value
-            elif isinstance(value, str) and '.' in value:
-                return float(value)
+            amount = float(entry_amount.get())
+            dollar_amount = converter.convert_to_dollar(amount)
+            if isinstance(dollar_amount, str):
+                result_label.config(text=dollar_amount)
             else:
-                return int(value)
-        except ValueError as error:
-            logging.error(f"Помилка конвертації значення '{value}': {error.__str__()}")
-            raise ValueError(f"Неможливо конвертувати значення '{value}' до числа.")
+                result_label.config(text=f"Сума в USD: {dollar_amount:.2f}")
+        except ValueError:
+            result_label.config(text="Будь ласка, введіть коректне число.")
+
+    window = tk.Tk()
+    window.title("Конвертер Валюти")
+
+    tk.Label(window, text="Сума у гривнях:").grid(row=0, column=0, padx=10, pady=10)
+    entry_amount = tk.Entry(window)
+    entry_amount.grid(row=0, column=1, padx=10, pady=10)
+
+    convert_button = tk.Button(window, text="Конвертувати", command=convert_currency)
+    convert_button.grid(row=1, column=0, columnspan=2, pady=10)
+
+    result_label = tk.Label(window, text="")
+    result_label.grid(row=2, column=0, columnspan=2, pady=10)
+
+    window.mainloop()
 
 
-calculation = Calculation()
+if __name__ == "__main__":
+    create_gui()
 
-logging.info('start app')
-print(calculation(a = input('Введіть перше число: '), b = input('Введіть друге число: '), operation = input('Введіть оператора: ')))
-logging.info('end app')
+
